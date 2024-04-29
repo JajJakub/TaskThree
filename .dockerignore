@@ -1,0 +1,11 @@
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+dist
+test
+.prettierrc
+.gitignore
+.git
+.idea
+README.md
