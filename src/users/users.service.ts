@@ -3,8 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
-import { PostEntity } from '../posts/entities/post.entity';
 
 @Injectable()
 export class UsersService {
@@ -12,17 +10,6 @@ export class UsersService {
     @InjectRepository(UserEntity)
     private readonly usersRepository: Repository<UserEntity>,
   ) {}
-
-  register(registerDto: CreateUserDto) {
-    const user = this.usersRepository.create(registerDto);
-    return this.usersRepository.save(user);
-  }
-
-  login(loginDto: LoginUserDto) {
-    return this.usersRepository.findOne({
-      where: { username: loginDto.username, password: loginDto.password },
-    });
-  }
 
   findAll() {
     return this.usersRepository.find();
@@ -36,6 +23,14 @@ export class UsersService {
     });
   }
 
+  getUserByUsername(username: string) {
+    return this.usersRepository.findOne({
+      where: {
+        username: username,
+      },
+    });
+  }
+
   getUserByEmail(emailUser: string) {
     return this.usersRepository.findOne({
       where: {
@@ -44,9 +39,14 @@ export class UsersService {
     });
   }
 
-  checkIfInDB(usernameDto: string, emailUser: string) {
+  async createUser(registerDto: CreateUserDto) {
+    const user = this.usersRepository.create(registerDto);
+    return await this.usersRepository.save(user);
+  }
+
+  checkIfInDB(login: string, emailUser: string) {
     return this.usersRepository.exists({
-      where: [{ username: usernameDto }, { email: emailUser }],
+      where: [{ username: login }, { email: emailUser }],
     });
   }
 }

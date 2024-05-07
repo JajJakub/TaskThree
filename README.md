@@ -62,6 +62,7 @@ wsl -l
 ```bash
 setx DOCKER_SCOUT_CACHE_DIR "D:\Docker\wsl\cache"
 ```
+### 3. Restart PC
 
 ## Running the app
 
