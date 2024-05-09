@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -8,6 +9,7 @@ import { LoginUserDto } from '../users/dto/login-user.dto';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from '../users/entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +20,12 @@ export class AuthService {
 
   async login(userDto: LoginUserDto) {
     const user = await this.usersService.getUserByUsername(userDto.username);
-    if (user?.password !== userDto.password) {
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    if (!(await bcrypt.compare(userDto.password, user.password))) {
       throw new UnauthorizedException();
     }
 
