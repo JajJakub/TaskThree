@@ -3,18 +3,26 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Post,
-  UnauthorizedException,
+  Request,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginUserDto } from '../users/dto/login-user.dto';
 import { AuthService } from './auth.service';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @UseGuards(LocalAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('login')
+  async loginUser(@Request() req: any) {
+    return await this.authService.login(req.user);
+  }
 
   @Post('register')
   async registerUser(@Body(ValidationPipe) registerDto: CreateUserDto) {
@@ -25,13 +33,10 @@ export class AuthController {
     }
   }
 
+  @UseGuards(RefreshAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Post('login')
-  async loginUser(@Body(ValidationPipe) loginDto: LoginUserDto) {
-    const user = await this.authService.login(loginDto);
-
-    if (!user) throw new UnauthorizedException('Bad Credentials');
-
-    return user;
+  @Post('refresh')
+  refresh(@Request() req: any) {
+    return this.authService.refresh(req.user);
   }
 }

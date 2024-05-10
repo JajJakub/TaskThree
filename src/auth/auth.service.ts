@@ -1,7 +1,6 @@
 import {
   ConflictException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -10,6 +9,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from '../users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class AuthService {
@@ -18,20 +18,22 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(userDto: LoginUserDto) {
+  async validateUser(userDto: LoginUserDto) {
     const user = await this.usersService.getUserByUsername(userDto.username);
 
-    if (!user) {
-      throw new NotFoundException();
+    if (user && (await bcrypt.compare(userDto.password, user.password))) {
+      return user;
     }
+    return null;
+  }
 
-    if (!(await bcrypt.compare(userDto.password, user.password))) {
-      throw new UnauthorizedException();
-    }
+  async login(user: UserEntity) {
+    const { password, ...result } = user;
 
-    const payload = { sub: user.id, username: user.username };
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      ...result,
+      access_token: await this.createAccessToken(user.id, user.username),
+      refresh_token: await this.createRefreshToken(user.id),
     };
   }
 
@@ -47,10 +49,37 @@ export class AuthService {
       );
 
     const user: UserEntity = await this.usersService.createUser(userDto);
+    const { password, ...result } = user;
 
-    const payload = { sub: user.id, username: user.username };
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      ...result,
+      access_token: await this.createAccessToken(user.id, user.username),
+      refresh_token: await this.createRefreshToken(user.id),
+    };
+  }
+
+  async createRefreshToken(userId: number) {
+    return await this.jwtService.signAsync(
+      {
+        sub: userId,
+      },
+      { secret: jwtConstants.refresh, expiresIn: '7d' },
+    );
+  }
+
+  async createAccessToken(userId: number, username: string) {
+    return await this.jwtService.signAsync(
+      {
+        sub: userId,
+        username: username,
+      },
+      { secret: jwtConstants.secret, expiresIn: '2m' },
+    );
+  }
+
+  async refresh(user: UserEntity) {
+    return {
+      access_token: await this.createAccessToken(user.id, user.username),
     };
   }
 }
