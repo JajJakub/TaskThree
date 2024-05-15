@@ -82,4 +82,19 @@ export class AuthService {
       access_token: await this.createAccessToken(user.id, user.username),
     };
   }
+
+  async getRefreshTokenExpiration(
+    refreshToken: string,
+  ): Promise<{ userId: number; expirationDate: number }> {
+    const decodedToken = await this.jwtService.decode(refreshToken);
+
+    if (decodedToken && decodedToken.exp) {
+      return {
+        userId: decodedToken.sub,
+        expirationDate: decodedToken.exp * 1000,
+      };
+    } else {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
 }

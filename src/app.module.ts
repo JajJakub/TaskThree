@@ -9,6 +9,8 @@ import { UserEntity } from './users/entities/user.entity';
 import { PostsModule } from './posts/posts.module';
 import { PostEntity } from './posts/entities/post.entity';
 import { AuthModule } from './auth/auth.module';
+import { BlacklistModule } from './blacklist/blacklist.module';
+import { BlacklistEntity } from './blacklist/entity/blacklist.entity';
 
 //root module
 @Module({
@@ -24,7 +26,7 @@ import { AuthModule } from './auth/auth.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [UserEntity, PostEntity],
+      entities: [UserEntity, PostEntity, BlacklistEntity],
       //change synchronize to false after finishing project
       synchronize: true,
       autoLoadEntities: true,
@@ -32,6 +34,7 @@ import { AuthModule } from './auth/auth.module';
     UsersModule,
     PostsModule,
     AuthModule,
+    BlacklistModule,
   ],
   controllers: [AppController],
   providers: [AppService],
