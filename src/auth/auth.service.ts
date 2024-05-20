@@ -63,7 +63,7 @@ export class AuthService {
       {
         sub: userId,
       },
-      { secret: jwtConstants.refresh, expiresIn: '7d' },
+      { secret: jwtConstants.refresh, expiresIn: jwtConstants.refresh_time },
     );
   }
 
@@ -73,7 +73,7 @@ export class AuthService {
         sub: userId,
         username: username,
       },
-      { secret: jwtConstants.secret, expiresIn: '2m' },
+      { secret: jwtConstants.secret, expiresIn: jwtConstants.secret_time },
     );
   }
 

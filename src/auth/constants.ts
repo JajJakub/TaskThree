@@ -11,4 +11,6 @@ function ensureEnvVariable(name: string): string {
 export const jwtConstants = {
   secret: ensureEnvVariable('JWT_SECRET'),
   refresh: ensureEnvVariable('JWT_REFRESH'),
+  secret_time: ensureEnvVariable('JWT_SECRET_TIME'),
+  refresh_time: ensureEnvVariable('JWT_REFRESH_TIME'),
 };

@@ -15,6 +15,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 import { BlacklistService } from '../blacklist/blacklist.service';
 import { BlacklistEntity } from '../blacklist/entity/blacklist.entity';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +27,15 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('login')
+  @ApiBody({
+    description: 'Require login and password in JSON format',
+    schema: {
+      example: {
+        login: 'username',
+        password: 'zaq1@WSX',
+      },
+    },
+  })
   async loginUser(@Request() req: any) {
     return await this.authService.login(req.user);
   }
@@ -42,6 +52,14 @@ export class AuthController {
   @UseGuards(RefreshAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
+  @ApiBody({
+    description: 'Require refresh token',
+    schema: {
+      example: {
+        refreshToken: 'Refresh Token',
+      },
+    },
+  })
   async refresh(@Request() req: any) {
     if (await this.blacklistService.checkIfBlacklisted(req.body.refreshToken))
       throw new UnauthorizedException('Token is blacklisted!');
@@ -52,6 +70,14 @@ export class AuthController {
   @UseGuards(RefreshAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('/invalidate')
+  @ApiBody({
+    description: 'Require refresh token',
+    schema: {
+      example: {
+        refreshToken: 'Refresh Token',
+      },
+    },
+  })
   async invalidateRefreshToken(@Request() req: any) {
     if (!req.body.refreshToken)
       throw new UnauthorizedException('Incorrect token');
@@ -67,11 +93,8 @@ export class AuthController {
         });
 
       return {
-        msg: 'Token invalidated successfully',
+        msg: 'Token invalidated successfully, log in to generate new one',
         blacklist_id: blacklistEntry.id,
-        refresh_token: await this.authService.createRefreshToken(
-          decodedToken.userId,
-        ),
       };
     } catch (error) {
       throw error;
